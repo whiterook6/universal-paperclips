@@ -3,7 +3,8 @@ import { printNumberWithCommas, printBigIntWithWords } from "./format";
 
 interface IProps {
     currentFrameTimeMS: number;
-    previousFrameTimeMS: number;
+    deltaTimeMS: number;
+    ageMS: number;
     isRunning: boolean;
 }
 
@@ -14,6 +15,7 @@ interface IState {
     clips: bigint;
     autoClippers: number;
     funds: number;
+    costPerClip: number;
 }
 
 export class Game extends Component<IProps, IState>{
@@ -21,9 +23,10 @@ export class Game extends Component<IProps, IState>{
         incompleteClip: 0,
         incompleteAutoClippers: 0,
         wire: 1000,
-        clips: 100000000000000000000000000n,
-        autoClippers: 100000000000000000,
-        funds: 0
+        clips: 0n,
+        autoClippers: 10,
+        funds: 0,
+        costPerClip: 0.05
     };
 
     public canBuyAutoClipper = () => {
@@ -44,15 +47,46 @@ export class Game extends Component<IProps, IState>{
         });
     }
 
+    public clip = () => {
+        this.setState((oldState) => {
+            return {
+                ...oldState,
+                clips: oldState.clips + 1n
+            };
+        });
+    }
+
+    public canSellClips = () => {
+        return this.state.clips > 500n;
+    }
+
+    public sellClips = () => {
+        if (!this.canSellClips()) {
+            return;
+        }
+
+        this.setState((oldState) => {
+            return {
+                ...oldState,
+                clips: oldState.clips - 500n,
+                funds: oldState.funds + this.state.costPerClip * 500
+            };
+        });
+    }
+
     public componentDidUpdate(previousProps: Readonly<IProps>): void {
         const {
-            currentFrameTimeMS: currentTimeMS,
-            previousFrameTimeMS: previousTimeMS,
+            currentFrameTimeMS,
+            deltaTimeMS,
             isRunning
         } = this.props;
-        if (currentTimeMS !== previousProps.currentFrameTimeMS && isRunning) {
-            this.update(currentTimeMS - previousTimeMS);
+        if (Math.abs(currentFrameTimeMS - previousProps.currentFrameTimeMS) < 0.1) { // if we're rerendering with the same time, don't update
+            return;
+        } else if (!isRunning){ // if we're paused, definitely don't update
+            return;
         }
+
+        this.update(deltaTimeMS);
     }
 
     public update = (deltaTimeMS: number) => {
@@ -66,14 +100,6 @@ export class Game extends Component<IProps, IState>{
                 newState.incompleteClip = newIncompleteClips;
             }
 
-            const newIncompleteAutoClippers = oldState.incompleteAutoClippers + (deltaTimeMS);
-            if (newIncompleteAutoClippers > 1) {
-                newState.autoClippers = oldState.autoClippers + Math.floor(newIncompleteAutoClippers);
-                newState.incompleteAutoClippers = newIncompleteAutoClippers % 1;
-            } else {
-                newState.incompleteAutoClippers = newIncompleteAutoClippers;
-            }
-
             return newState;
         })
     }
@@ -82,26 +108,29 @@ export class Game extends Component<IProps, IState>{
         const {
             clips,
             autoClippers,
-            funds
+            funds,
         } = this.state;
         const newAutoClipperCost = this.nextAutoClipperCost();
 
         return (
             <div>
                 <h1>Clips: {printNumberWithCommas(clips)}</h1>
-                <div>{printBigIntWithWords(clips)}</div>
                 <h2>Clips per second: {printNumberWithCommas(autoClippers)}</h2>
+                <button onClick={this.clip}>Build Clip</button>
                 <hr />
-                <h3>Funds: {funds}</h3>
+                <h3>Funds: ${funds.toFixed(2)}</h3>
+                <button disabled={!this.canSellClips()} onClick={this.sellClips}>
+                    Sell 500 clips for ${(this.state.costPerClip * 500).toFixed(2)}
+                </button>
                 <h3>Autoclippers: {printNumberWithCommas(autoClippers)}</h3>
                 <button disabled={!this.canBuyAutoClipper()} onClick={this.buyAutoClipper}>
-                    Buy AutoClipper (${newAutoClipperCost})
+                    Buy AutoClipper (${newAutoClipperCost.toFixed(2)})
                 </button>
             </div>
         )
     }
 
     private nextAutoClipperCost = () => {
-        return 0; // Math.pow(1.1, this.state.autoClippers) * 5;
+        return Math.pow(1.05, this.state.autoClippers) * 5;
     }
 }

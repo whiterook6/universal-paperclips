@@ -53,13 +53,17 @@ export class App extends Component<any, IState> {
     }
     
     public render() {
-        const ageMS = this.state.currentFrameTimeMS - this.state.startTimeExcludingPausesMS;
+        const currentFrameTimeMS = this.state.currentFrameTimeMS;
+        const ageMS = currentFrameTimeMS - this.state.startTimeExcludingPausesMS;
+        const deltaTimeMS = currentFrameTimeMS - this.state.previousFrameTimeMS;
+        const isRunning = this.state.isRunning;
         return (
             <div>
                 <Game
-                    isRunning={this.state.isRunning}
-                    currentFrameTimeMS={this.state.currentFrameTimeMS}
-                    previousFrameTimeMS={this.state.previousFrameTimeMS}
+                    ageMS={ageMS}
+                    currentFrameTimeMS={currentFrameTimeMS}
+                    deltaTimeMS={deltaTimeMS}
+                    isRunning={isRunning}
                 />
                 {this.state.isRunning ? <button onClick={this.pause}>Pause</button> : <button onClick={this.unPause}>Unpause</button>}
                 <div>

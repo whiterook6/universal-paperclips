@@ -13,14 +13,9 @@ I wanted to test how to run a game loop at 60FPS within React, and learn some of
 - Added game loop, clips, and free autoclippers
 - Added extremely large number formatting (printing numbers up to 999 novenonagintillion)
 - Added time formatting: Yy Dd Hh Mm S.MMMs (eg 123y 45d 01h 23m 45.678s)
+- Added funds, selling clips, and buying autoclippers.
 
 # Dev
-
-## To do
-
-- Add funds from selling clips
-- Buy autoclippers and wire with funds
-- Run out of wire and stop building clips
 
 ## Building the code
 
