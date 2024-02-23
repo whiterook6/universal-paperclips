@@ -1,4 +1,26 @@
+# Universal Paperclips
+
+A clone of [Universal Paperclips](https://www.decisionproblem.com/paperclips/) by Frank Lantz.
+
+I wanted to test how to run a game loop at 60FPS within React, and learn some of the game mechanics for myself. The original is far better.
+
+## Screenshot
+
+![Screenshot](screenshot.png)
+
+## Updates
+
+- Added game loop, clips, and free autoclippers
+
 # Dev
+
+## To do
+
+- Add funds from selling clips
+- Buy autoclippers and wire with funds
+- Run out of wire and stop building clips
+
+## Building the code
 
 `yarn run watch` or `npm run watch`: Watches files and updates when source changes
 
