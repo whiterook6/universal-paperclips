@@ -138,3 +138,47 @@ export const printBigIntWithWords = (bigInt: bigint): string => {
         return `${printNumberWithCommas(n)} ${suffixes[suffixesIndex]}`;
     }
 }
+
+/**
+ * Prints a timestamp or age as Yy Dd Hh Mm S.SSSs
+ */
+export const printMillisecondsAsClock = (milliseconds: number): string => {
+    if (milliseconds < 0) {
+        return printMillisecondsAsClock(-milliseconds);
+    }
+
+    if (milliseconds < 1000) {
+        return `${Math.floor(milliseconds)}ms`;
+    }
+
+    const seconds = milliseconds / 1000;
+    if (seconds < 60){
+        return `${seconds.toFixed(1)}s`;
+    }
+
+    const secondsMod = seconds % 60;
+    const secondsPart = secondsMod < 10 ? `0${secondsMod.toFixed(1)}s` : `${secondsMod.toFixed(1)}s`;
+    const minutes = Math.floor(milliseconds / (60 * 1000));
+    if (minutes < 60) {
+        return `${minutes}m ${secondsPart}`;
+    }
+
+    const minutesMod = minutes % 60;
+    const minutesPart = minutesMod < 10 ? `0${minutesMod}m ${secondsPart}` : `${minutesMod}m ${secondsPart}`;
+    const hours = Math.floor(milliseconds / (60 * 60 * 1000));
+    if (hours < 24) {
+        return `${hours}h ${minutesPart}`;
+    }
+
+    const hoursMod = hours % 24;
+    const hoursPart = hoursMod < 10 ? `0${hoursMod}h ${minutesPart}` : `${hoursMod}h ${minutesPart}`;
+    const days = Math.floor(milliseconds / (24 * 60 * 60 * 1000));
+    if (days < 365) {
+        return `${days}d ${hoursPart}`;
+    }
+
+    const daysMod = days % 365;
+    const daysPart = (daysMod < 10) ? `00${daysMod}d ${hoursPart}` : (daysMod < 100) ? `0${daysMod}d ${hoursPart}` : `${daysMod}d ${hoursPart}`;
+    const years = Math.floor(milliseconds / (365 * 24 * 60 * 60 * 1000));
+    return `${years}y ${daysPart}`;
+}

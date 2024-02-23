@@ -1,21 +1,24 @@
 import { Component } from "preact";
 import { Game } from "./Game";
+import { printMillisecondsAsClock } from "./format";
 
 interface IState {
-    firstFrame: boolean;
-    previousFrameTimeMS: DOMHighResTimeStamp;
     currentFrameTimeMS: DOMHighResTimeStamp;
+    firstFrame: boolean;
     isRunning: boolean;
+    previousFrameTimeMS: DOMHighResTimeStamp;
+    startTimeExcludingPausesMS: number;
 };
 
-export class App extends Component {
+export class App extends Component<any, IState> {
     private requestFrameID: number = 0;
 
     public state: IState = {
-        firstFrame: true,
-        previousFrameTimeMS: 0,
         currentFrameTimeMS: 0,
-        isRunning: true
+        firstFrame: true,
+        isRunning: true,
+        previousFrameTimeMS: 0,
+        startTimeExcludingPausesMS: 0,
     };
 
     public componentDidMount(): void {
@@ -41,8 +44,6 @@ export class App extends Component {
         this.setState((oldState) => {
             return {
                 ...oldState,
-                previousFrameTimeMS: 0,
-                currentFrameTimeMS: 0,
                 firstFrame: true,
                 isRunning: true
             } as IState;
@@ -52,6 +53,7 @@ export class App extends Component {
     }
     
     public render() {
+        const ageMS = this.state.currentFrameTimeMS - this.state.startTimeExcludingPausesMS;
         return (
             <div>
                 <Game
@@ -60,6 +62,9 @@ export class App extends Component {
                     previousFrameTimeMS={this.state.previousFrameTimeMS}
                 />
                 {this.state.isRunning ? <button onClick={this.pause}>Pause</button> : <button onClick={this.unPause}>Unpause</button>}
+                <div>
+                    {printMillisecondsAsClock(ageMS)} of play time
+                </div>
             </div>
         )
     }
@@ -67,7 +72,9 @@ export class App extends Component {
     private loop = (frameTime: DOMHighResTimeStamp) => {
         if (this.state.isRunning) {
             if (this.state.firstFrame){
+                const oldAge = this.state.currentFrameTimeMS - this.state.startTimeExcludingPausesMS;
                 this.setState({
+                    startTimeExcludingPausesMS: frameTime - oldAge,
                     firstFrame: false,
                     previousFrameTimeMS: frameTime - 16.67,
                     currentFrameTimeMS: frameTime
