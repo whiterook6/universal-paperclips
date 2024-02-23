@@ -11,6 +11,7 @@ I wanted to test how to run a game loop at 60FPS within React, and learn some of
 ## Updates
 
 - Added game loop, clips, and free autoclippers
+- Added extremely large number formatting (printing numbers up to 999 novenonagintillion)
 
 # Dev
 

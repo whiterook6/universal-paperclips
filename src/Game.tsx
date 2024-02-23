@@ -1,4 +1,5 @@
 import { Component } from "preact";
+import { printNumberWithCommas, printBigIntWithWords } from "./format";
 
 interface IProps {
     currentFrameTimeMS: number;
@@ -9,6 +10,7 @@ interface IProps {
 interface IState {
     wire: number;
     incompleteClip: number;
+    incompleteAutoClippers: number;
     clips: bigint;
     autoClippers: number;
     funds: number;
@@ -17,9 +19,10 @@ interface IState {
 export class Game extends Component<IProps, IState>{
     public state: IState = {
         incompleteClip: 0,
+        incompleteAutoClippers: 0,
         wire: 1000,
-        clips: 0n,
-        autoClippers: 1,
+        clips: 100000000000000000000000000n,
+        autoClippers: 100000000000000000,
         funds: 0
     };
 
@@ -54,13 +57,22 @@ export class Game extends Component<IProps, IState>{
 
     public update = (deltaTimeMS: number) => {
         this.setState(oldState => {
-            const newState = {
-                ...oldState
-            };
+            const newState: Partial<IState> = {};
             const newIncompleteClips = oldState.incompleteClip + oldState.autoClippers * (deltaTimeMS / 1000);
-            newState.clips = oldState.clips + BigInt(Math.floor(newIncompleteClips));
-            newState.incompleteClip = newIncompleteClips % 1;
-            console.log(newState.clips.toString(10));
+            if (newIncompleteClips > 1) {
+                newState.clips = oldState.clips + BigInt(Math.floor(newIncompleteClips));
+                newState.incompleteClip = newIncompleteClips % 1;
+            } else {
+                newState.incompleteClip = newIncompleteClips;
+            }
+
+            const newIncompleteAutoClippers = oldState.incompleteAutoClippers + (deltaTimeMS);
+            if (newIncompleteAutoClippers > 1) {
+                newState.autoClippers = oldState.autoClippers + Math.floor(newIncompleteAutoClippers);
+                newState.incompleteAutoClippers = newIncompleteAutoClippers % 1;
+            } else {
+                newState.incompleteAutoClippers = newIncompleteAutoClippers;
+            }
 
             return newState;
         })
@@ -76,11 +88,12 @@ export class Game extends Component<IProps, IState>{
 
         return (
             <div>
-                <h1>Clips: {clips.toString(10)}</h1>
-                <h2>Clips per second: {autoClippers}</h2>
+                <h1>Clips: {printNumberWithCommas(clips)}</h1>
+                <div>{printBigIntWithWords(clips)}</div>
+                <h2>Clips per second: {printNumberWithCommas(autoClippers)}</h2>
                 <hr />
                 <h3>Funds: {funds}</h3>
-                <h3>Autoclippers: {autoClippers}</h3>
+                <h3>Autoclippers: {printNumberWithCommas(autoClippers)}</h3>
                 <button disabled={!this.canBuyAutoClipper()} onClick={this.buyAutoClipper}>
                     Buy AutoClipper (${newAutoClipperCost})
                 </button>
