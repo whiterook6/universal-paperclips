@@ -1,0 +1,17 @@
+{
+  "scripts": {
+    "build": "rm -rf ./output;esbuild src/index.tsx --bundle --outfile=./output/index.js --minify --sourcemap;cp src/index.html ./output/index.html",
+    "watch": "esbuild src/index.tsx --bundle --outfile=./output/index.js --minify --sourcemap --watch"
+  },
+  "name": "universal-paperclips",
+  "version": "1.0.0",
+  "license": "UNLICENSED",
+  "private": true,
+  "devDependencies": {
+    "esbuild": "^0.20.1",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "preact": "^10.19.6"
+  }
+}
