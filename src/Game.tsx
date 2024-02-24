@@ -11,7 +11,7 @@ interface IProps {
 
 interface IState {
     wire: number;
-    incompleteClip: number;
+    incompleteClips: number;
     incompleteAutoClippers: number;
     clipsMade: bigint;
     clipsSold: bigint;
@@ -23,7 +23,7 @@ interface IState {
 
 export class Game extends Component<IProps, IState>{
     public state: IState = {
-        incompleteClip: 0,
+        incompleteClips: 0,
         incompleteAutoClippers: 0,
         wire: 1000,
         clipsMade: 0n,
@@ -71,10 +71,37 @@ export class Game extends Component<IProps, IState>{
         });
     }
 
+    public canClip = () => {
+        return this.state.wire > 0;
+    }
+
     public clip = () => {
+        if (!this.canClip()) {
+            return;
+        }
         this.setState((oldState): Partial<IState> => {
             return {
-                clipsMade: oldState.clipsMade + 1n
+                clipsMade: oldState.clipsMade + 1n,
+                wire: oldState.wire - 1
+            };
+        });
+    }
+
+    public getWireCost = () => 15;
+
+    public canBuyWire = () => {
+        return this.state.funds >= this.getWireCost();
+    }
+
+    public buyWire = () => {
+        if (!this.canBuyWire()){
+            return;
+        }
+
+        this.setState((oldState): Partial<IState> => {
+            return {
+                wire: oldState.wire + 1000,
+                funds: oldState.funds - this.getWireCost()
             };
         });
     }
@@ -82,7 +109,7 @@ export class Game extends Component<IProps, IState>{
     public canSellClips = () => {
         const { clipsMade, clipsSold } = this.state;
         const clipsLeft = clipsMade - clipsSold;
-        return clipsLeft > 500n;
+        return clipsLeft >= 500n;
     }
 
     public sellClips = () => {
@@ -115,11 +142,20 @@ export class Game extends Component<IProps, IState>{
 
     public update = (deltaTimeMS: number) => {
         this.setState((oldState: IState): Partial<IState> => {
+            const {
+                wire: oldWire,
+                incompleteClips: oldIncompleteClips,
+                autoClippers,
+                clipsMade: oldClipsMade
+            } = oldState;
+
             const newState: Partial<IState> = {};
-            const newIncompleteClips = oldState.incompleteClip + oldState.autoClippers * (deltaTimeMS / 1000);
-            if (newIncompleteClips > 1) {
-                newState.clipsMade = oldState.clipsMade + BigInt(Math.floor(newIncompleteClips));
-                newState.incompleteClip = newIncompleteClips % 1;
+            const newIncompleteClips = oldIncompleteClips + autoClippers * (deltaTimeMS / 1000);
+            const newClipsMade = Math.min(oldWire, Math.floor(newIncompleteClips));
+            if (newClipsMade >= 1) {
+                newState.clipsMade = oldClipsMade + BigInt(newClipsMade);
+                newState.incompleteClips = newIncompleteClips % 1;
+                newState.wire = oldWire - newClipsMade;
 
                 // calculate updated clipsPerSecond
                 const cutoff = this.props.ageMS - 2000;
@@ -127,7 +163,7 @@ export class Game extends Component<IProps, IState>{
                 newClipsPerSecond.push({time: this.props.ageMS, clips: newState.clipsMade});
                 newState.clipsPerSecond = newClipsPerSecond;
             } else {
-                newState.incompleteClip = newIncompleteClips;
+                newState.incompleteClips = newIncompleteClips;
             }
 
             return newState;
@@ -148,7 +184,10 @@ export class Game extends Component<IProps, IState>{
                 <h1>Clips: {printNumberWithCommas(clipsMade - clipsSold)}</h1>
                 <div>Clips made: {clipsMade} | Clips sold: {clipsSold}</div>
                 <h2>Clips per second: {printNumberWithCommas(this.getClipsPerSecond())}</h2>
-                <button onClick={this.clip}>Build Clip</button>
+                <hr />
+                <button onClick={this.clip} disabled={!this.canClip()}>Build Clip</button>
+                <h3>Wire: {printNumberWithCommas(this.state.wire)}</h3>
+                <button onClick={this.buyWire} disabled={!this.canBuyWire()}>Buy Wire for ${this.getWireCost()}</button>
                 <hr />
                 <h3>Funds: ${funds.toFixed(2)}</h3>
                 <button disabled={!this.canSellClips()} onClick={this.sellClips}>
