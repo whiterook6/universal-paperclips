@@ -13,10 +13,12 @@ interface IState {
     wire: number;
     incompleteClip: number;
     incompleteAutoClippers: number;
-    clips: bigint;
+    clipsMade: bigint;
+    clipsSold: bigint;
     autoClippers: number;
     funds: number;
     costPerClip: number;
+    clipsPerSecond: Array<{time: number, clips: bigint}>;
 }
 
 export class Game extends Component<IProps, IState>{
@@ -24,11 +26,32 @@ export class Game extends Component<IProps, IState>{
         incompleteClip: 0,
         incompleteAutoClippers: 0,
         wire: 1000,
-        clips: 0n,
+        clipsMade: 0n,
+        clipsSold: 0n,
         autoClippers: 10,
         funds: 0,
         costPerClip: 0.05,
+        clipsPerSecond: []
     };
+
+    public getClipsPerSecond = () => {
+        if (this.state.clipsPerSecond.length < 2) {
+            return 0;
+        }
+        const left = this.state.clipsPerSecond[0];
+        const right = this.state.clipsPerSecond[this.state.clipsPerSecond.length - 1];
+        const delay = right.time - left.time;
+        if (delay < 1){
+            return 0;
+        }
+
+        const difference = right.clips - left.clips;
+        if (difference < Number.MAX_SAFE_INTEGER){
+            return BigInt(Math.round(Number(difference) / delay * 1000));
+        } else {
+            return difference / BigInt(delay * 1000);
+        }
+    }
 
     public canBuyAutoClipper = () => {
         return this.state.funds >= this.nextAutoClipperCost();
@@ -49,16 +72,17 @@ export class Game extends Component<IProps, IState>{
     }
 
     public clip = () => {
-        this.setState((oldState) => {
+        this.setState((oldState): Partial<IState> => {
             return {
-                ...oldState,
-                clips: oldState.clips + 1n
+                clipsMade: oldState.clipsMade + 1n
             };
         });
     }
 
     public canSellClips = () => {
-        return this.state.clips > 500n;
+        const { clipsMade, clipsSold } = this.state;
+        const clipsLeft = clipsMade - clipsSold;
+        return clipsLeft > 500n;
     }
 
     public sellClips = () => {
@@ -66,10 +90,9 @@ export class Game extends Component<IProps, IState>{
             return;
         }
 
-        this.setState((oldState) => {
+        this.setState((oldState): Partial<IState> => {
             return {
-                ...oldState,
-                clips: oldState.clips - 500n,
+                clipsSold: oldState.clipsSold + 500n,
                 funds: oldState.funds + this.state.costPerClip * 500
             };
         });
@@ -95,8 +118,14 @@ export class Game extends Component<IProps, IState>{
             const newState: Partial<IState> = {};
             const newIncompleteClips = oldState.incompleteClip + oldState.autoClippers * (deltaTimeMS / 1000);
             if (newIncompleteClips > 1) {
-                newState.clips = oldState.clips + BigInt(Math.floor(newIncompleteClips));
+                newState.clipsMade = oldState.clipsMade + BigInt(Math.floor(newIncompleteClips));
                 newState.incompleteClip = newIncompleteClips % 1;
+
+                // calculate updated clipsPerSecond
+                const cutoff = this.props.ageMS - 2000;
+                const newClipsPerSecond = oldState.clipsPerSecond.filter((cps) => cps.time > cutoff);
+                newClipsPerSecond.push({time: this.props.ageMS, clips: newState.clipsMade});
+                newState.clipsPerSecond = newClipsPerSecond;
             } else {
                 newState.incompleteClip = newIncompleteClips;
             }
@@ -107,7 +136,8 @@ export class Game extends Component<IProps, IState>{
 
     public render = () => {
         const {
-            clips,
+            clipsMade,
+            clipsSold,
             autoClippers,
             funds,
         } = this.state;
@@ -115,8 +145,9 @@ export class Game extends Component<IProps, IState>{
 
         return (
             <div>
-                <h1>Clips: {printNumberWithCommas(clips)}</h1>
-                <h2>Clips per second: 0</h2>
+                <h1>Clips: {printNumberWithCommas(clipsMade - clipsSold)}</h1>
+                <div>Clips made: {clipsMade} | Clips sold: {clipsSold}</div>
+                <h2>Clips per second: {printNumberWithCommas(this.getClipsPerSecond())}</h2>
                 <button onClick={this.clip}>Build Clip</button>
                 <hr />
                 <h3>Funds: ${funds.toFixed(2)}</h3>
@@ -127,7 +158,6 @@ export class Game extends Component<IProps, IState>{
                 <button disabled={!this.canBuyAutoClipper()} onClick={this.buyAutoClipper}>
                     Buy AutoClipper (${newAutoClipperCost.toFixed(2)})
                 </button>
-                {this.props.isNewSecond ? <div>new second</div> : null}
             </div>
         )
     }

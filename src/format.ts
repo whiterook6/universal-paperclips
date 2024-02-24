@@ -178,7 +178,12 @@ export const printMillisecondsAsClock = (milliseconds: number): string => {
     }
 
     const daysMod = days % 365;
-    const daysPart = (daysMod < 10) ? `00${daysMod}d ${hoursPart}` : (daysMod < 100) ? `0${daysMod}d ${hoursPart}` : `${daysMod}d ${hoursPart}`;
     const years = Math.floor(milliseconds / (365 * 24 * 60 * 60 * 1000));
-    return `${years}y ${daysPart}`;
+    if (daysMod < 10) {
+        return `${years}y 00${daysMod}d ${hoursPart}`;
+    } else if (daysMod < 100) {
+        return `${years}y 0${daysMod}d ${hoursPart}`;
+    } else {
+        return `${years}y ${daysMod}d ${hoursPart}`;
+    }
 }

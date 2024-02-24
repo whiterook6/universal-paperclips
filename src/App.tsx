@@ -88,9 +88,8 @@ export class App extends Component<any, IState> {
                     isRunning={isRunning}
                 />
                 {this.state.isRunning ? <button onClick={this.pause}>Pause</button> : <button onClick={this.unPause}>Unpause</button>}
-                <div>
-                    {printMillisecondsAsClock(ageMS)} of play time
-                </div>
+                <div>{printMillisecondsAsClock(ageMS)} of play time</div>
+                {isNewSecond && <div>New second!</div>}
             </div>
         )
     }
