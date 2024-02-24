@@ -23,7 +23,7 @@ const suffixes = [
     "quattuordecillion", // 45
     "quindecillion", // 48
     "sedecillion", // 51
-    "septendecillion", // 54
+    "septendecillion", // 54 // limit of original universal paperclips game
     "octodecillion", // 57
     "novendecillion", // 60
     "vigintillion", // 63
@@ -116,27 +116,26 @@ const suffixes = [
            10,000n => 10 thousand
            12,340n => 12 thousand
           123,400n => 123 thousand
-        1,234,000n => 1,000 thousand
-       12,340,000n => 12,000 thousand
+        1,234,000n => 1.23 million
+       12,340,000n => 12.3 million
       123,400,000n => 123 million
-    1,234,000,000n => 1,000 million
+    1,234,000,000n => 1.23 billion
  */
-export const printBigIntWithWords = (bigInt: bigint): string => {
-    if (bigInt < 10000n){
-        return printNumberWithCommas(bigInt);
+export const printBigIntWithWords = (value: bigint): string => {
+    if (value < 10000n){
+        return printNumberWithCommas(value);
     }
 
-    let n = bigInt;
-    let suffixesIndex = 0;
-    while (n > 1000 && suffixesIndex < suffixes.length - 1) {
-        n /= 1000n;
-        suffixesIndex++;
+    let n = value;
+    let suffixIndex = 0;
+    while (n > 1000000n && suffixIndex < suffixes.length - 2){
+        n = n / 1000n;
+        suffixIndex++;
     }
-    if (n < 100 && suffixesIndex > 1){ // back up a step if we can
-        return `${printNumberWithCommas(n * 1000n)} ${suffixes[suffixesIndex - 1]}`
-    } else {
-        return `${printNumberWithCommas(n)} ${suffixes[suffixesIndex]}`;
-    }
+
+    const f = Number(n) / 1000;
+    suffixIndex++;
+    return `${f.toPrecision(3)} ${suffixes[suffixIndex]}`;
 }
 
 /**
