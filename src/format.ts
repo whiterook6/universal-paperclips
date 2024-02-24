@@ -153,11 +153,11 @@ export const printMillisecondsAsClock = (milliseconds: number): string => {
 
     const seconds = milliseconds / 1000;
     if (seconds < 60){
-        return `${seconds.toFixed(1)}s`;
+        return `${seconds.toFixed(2)}s`;
     }
 
     const secondsMod = seconds % 60;
-    const secondsPart = secondsMod < 10 ? `0${secondsMod.toFixed(1)}s` : `${secondsMod.toFixed(1)}s`;
+    const secondsPart = secondsMod < 10 ? `0${secondsMod.toFixed(2)}s` : `${secondsMod.toFixed(2)}s`;
     const minutes = Math.floor(milliseconds / (60 * 1000));
     if (minutes < 60) {
         return `${minutes}m ${secondsPart}`;

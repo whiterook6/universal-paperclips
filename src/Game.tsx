@@ -6,6 +6,7 @@ interface IProps {
     deltaTimeMS: number;
     ageMS: number;
     isRunning: boolean;
+    isNewSecond: boolean;
 }
 
 interface IState {
@@ -26,7 +27,7 @@ export class Game extends Component<IProps, IState>{
         clips: 0n,
         autoClippers: 10,
         funds: 0,
-        costPerClip: 0.05
+        costPerClip: 0.05,
     };
 
     public canBuyAutoClipper = () => {
@@ -90,7 +91,7 @@ export class Game extends Component<IProps, IState>{
     }
 
     public update = (deltaTimeMS: number) => {
-        this.setState(oldState => {
+        this.setState((oldState: IState): Partial<IState> => {
             const newState: Partial<IState> = {};
             const newIncompleteClips = oldState.incompleteClip + oldState.autoClippers * (deltaTimeMS / 1000);
             if (newIncompleteClips > 1) {
@@ -101,7 +102,7 @@ export class Game extends Component<IProps, IState>{
             }
 
             return newState;
-        })
+        });
     }
 
     public render = () => {
@@ -115,7 +116,7 @@ export class Game extends Component<IProps, IState>{
         return (
             <div>
                 <h1>Clips: {printNumberWithCommas(clips)}</h1>
-                <h2>Clips per second: {printNumberWithCommas(autoClippers)}</h2>
+                <h2>Clips per second: 0</h2>
                 <button onClick={this.clip}>Build Clip</button>
                 <hr />
                 <h3>Funds: ${funds.toFixed(2)}</h3>
@@ -126,6 +127,7 @@ export class Game extends Component<IProps, IState>{
                 <button disabled={!this.canBuyAutoClipper()} onClick={this.buyAutoClipper}>
                     Buy AutoClipper (${newAutoClipperCost.toFixed(2)})
                 </button>
+                {this.props.isNewSecond ? <div>new second</div> : null}
             </div>
         )
     }
