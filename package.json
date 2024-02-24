@@ -1,7 +1,8 @@
 {
   "scripts": {
-    "build": "rm -rf ./output;esbuild src/index.tsx --bundle --outfile=./output/index.js --minify --sourcemap;cp src/index.html ./output/index.html",
-    "watch": "esbuild src/index.tsx --bundle --outfile=./output/index.js --minify --sourcemap --watch"
+    "dev:build": "rm -rf ./output;esbuild src/index.tsx --bundle --outfile=./output/index.js --sourcemap;cp src/index.html ./output/index.html",
+    "dev:watch": "esbuild src/index.tsx --bundle --outfile=./output/index.js --sourcemap --watch",
+    "prod:build": "rm -rf ./output;esbuild src/index.tsx --bundle --outfile=./output/index.js --minify;cp src/index.html ./output/index.html"
   },
   "name": "universal-paperclips",
   "version": "1.0.0",
