@@ -1,5 +1,5 @@
 import { Component } from "preact";
-import { printNumberWithCommas, printBigIntWithWords } from "./format";
+import { printNumberWithCommas } from "./format";
 
 interface IProps {
     currentFrameTimeMS: number;
@@ -18,7 +18,8 @@ interface IState {
     autoClippers: number;
     funds: number;
     costPerClip: number;
-    clipsPerSecond: Array<{time: number, clips: bigint}>;
+    clipsMadeLastSecond: bigint;
+    clipsPerSecond: bigint;
 }
 
 export class Game extends Component<IProps, IState>{
@@ -28,30 +29,12 @@ export class Game extends Component<IProps, IState>{
         wire: 1000,
         clipsMade: 0n,
         clipsSold: 0n,
-        autoClippers: 10,
+        autoClippers: 5,
         funds: 0,
         costPerClip: 0.05,
-        clipsPerSecond: []
+        clipsMadeLastSecond: 0n,
+        clipsPerSecond: 0n
     };
-
-    public getClipsPerSecond = () => {
-        if (this.state.clipsPerSecond.length < 2) {
-            return 0;
-        }
-        const left = this.state.clipsPerSecond[0];
-        const right = this.state.clipsPerSecond[this.state.clipsPerSecond.length - 1];
-        const delay = right.time - left.time;
-        if (delay < 1){
-            return 0;
-        }
-
-        const difference = right.clips - left.clips;
-        if (difference < Number.MAX_SAFE_INTEGER){
-            return BigInt(Math.round(Number(difference) / delay * 1000));
-        } else {
-            return difference / BigInt(delay * 1000);
-        }
-    }
 
     public canBuyAutoClipper = () => {
         return this.state.funds >= this.nextAutoClipperCost();
@@ -129,7 +112,8 @@ export class Game extends Component<IProps, IState>{
         const {
             currentFrameTimeMS,
             deltaTimeMS,
-            isRunning
+            isRunning,
+            isNewSecond,
         } = this.props;
         if (Math.abs(currentFrameTimeMS - previousProps.currentFrameTimeMS) < 0.1) { // if we're rerendering with the same time, don't update
             return;
@@ -137,10 +121,10 @@ export class Game extends Component<IProps, IState>{
             return;
         }
 
-        this.update(deltaTimeMS);
+        this.update(deltaTimeMS, isNewSecond);
     }
 
-    public update = (deltaTimeMS: number) => {
+    public update = (deltaTimeMS: number, isNewSecond: boolean) => {
         this.setState((oldState: IState): Partial<IState> => {
             const {
                 wire: oldWire,
@@ -150,18 +134,18 @@ export class Game extends Component<IProps, IState>{
             } = oldState;
 
             const newState: Partial<IState> = {};
-            const newIncompleteClips = oldIncompleteClips + autoClippers * (deltaTimeMS / 1000);
-            const newClipsMade = Math.min(oldWire, Math.floor(newIncompleteClips));
-            if (newClipsMade >= 1) {
+
+            if (isNewSecond){
+                newState.clipsMadeLastSecond = oldClipsMade;
+                newState.clipsPerSecond = oldClipsMade - oldState.clipsMadeLastSecond;
+            }
+            
+            const newIncompleteClips = Math.min(oldWire, oldIncompleteClips + autoClippers * (deltaTimeMS / 1000));
+            if (newIncompleteClips >= 1){
+                const newClipsMade = Math.floor(newIncompleteClips);
                 newState.clipsMade = oldClipsMade + BigInt(newClipsMade);
                 newState.incompleteClips = newIncompleteClips % 1;
                 newState.wire = oldWire - newClipsMade;
-
-                // calculate updated clipsPerSecond
-                const cutoff = this.props.ageMS - 2000;
-                const newClipsPerSecond = oldState.clipsPerSecond.filter((cps) => cps.time > cutoff);
-                newClipsPerSecond.push({time: this.props.ageMS, clips: newState.clipsMade});
-                newState.clipsPerSecond = newClipsPerSecond;
             } else {
                 newState.incompleteClips = newIncompleteClips;
             }
@@ -176,6 +160,7 @@ export class Game extends Component<IProps, IState>{
             clipsSold,
             autoClippers,
             funds,
+            clipsPerSecond
         } = this.state;
         const newAutoClipperCost = this.nextAutoClipperCost();
 
@@ -183,7 +168,7 @@ export class Game extends Component<IProps, IState>{
             <div>
                 <h1>Clips: {printNumberWithCommas(clipsMade - clipsSold)}</h1>
                 <div>Clips made: {clipsMade} | Clips sold: {clipsSold}</div>
-                <h2>Clips per second: {printNumberWithCommas(this.getClipsPerSecond())}</h2>
+                <h2>Clips per second: {printNumberWithCommas(clipsPerSecond)}</h2>
                 <hr />
                 <button onClick={this.clip} disabled={!this.canClip()}>Build Clip</button>
                 <h3>Wire: {printNumberWithCommas(this.state.wire)}</h3>
