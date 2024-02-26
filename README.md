@@ -16,6 +16,7 @@ I wanted to test how to run a game loop at 60FPS within React, and learn some of
 - Added funds, selling clips, and buying autoclippers.
 - Added wire, buying wire, running out of wire
 - Fixed bugs with printing large numbers, and improved the game loop
+- Some styling, and more controls for selling and buying
 
 # Dev
 

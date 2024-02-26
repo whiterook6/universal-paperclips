@@ -3,8 +3,64 @@ html, body {
   padding: 0;
   height: 100%;
   width: 100%;
+  background: #FBFBFB;
+  color: rgb(117, 117, 117);
+  font-family: "Montserrat", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+}
+
+body {
+  padding: 1rem;
+}
+
+h1, h2, h3 {
+  color:rgb(255,0,115)
 }
 
 * {
   box-sizing: border-box;
+}
+
+button {
+  background-color: hsl(0deg,0%,100%);
+  border-color: hsl(0deg,0%,86%);
+  border-width: 1px;
+  color: hsl(0deg,0%,21%);
+  justify-content: center;
+  padding-bottom: calc(.5em - 1px);
+  padding-left: 1em;
+  padding-right: 1em;
+  padding-top: calc(.5em - 1px);
+  text-align: center;
+  white-space: nowrap;
+}
+
+button:disabled {
+  background-color: hsl(0deg,0%,100%);
+  border-color: hsl(0deg,0%,86%);
+  box-shadow: none;
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+.buttons {
+  display: inline-flex;
+  align-items: stretch;
+}
+
+.buttons button {
+  border-right-width: 0;
+}
+
+.buttons :first-child {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.buttons :last-child {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  border-right-width: 1px;
 }
