@@ -70,40 +70,40 @@ export class Game extends Component<IProps, IState>{
         });
     }
 
-    public getWireCost = () => 15;
+    public getWireCost = (wires: number = 1000) => wires * 0.015;;
 
-    public canBuyWire = () => {
-        return this.state.funds >= this.getWireCost();
+    public canBuyWire = (wires: number = 1000) => {
+        return this.state.funds >= this.getWireCost(wires);
     }
 
-    public buyWire = () => {
-        if (!this.canBuyWire()){
+    public buyWire = (wires: number = 1000) => {
+        if (!this.canBuyWire(wires)){
             return;
         }
 
         this.setState((oldState): Partial<IState> => {
             return {
-                wire: oldState.wire + 1000,
-                funds: oldState.funds - this.getWireCost()
+                wire: oldState.wire + wires,
+                funds: oldState.funds - this.getWireCost(wires)
             };
         });
     }
 
-    public canSellClips = () => {
+    public canSellClips = (howMany: bigint = 500n) => {
         const { clipsMade, clipsSold } = this.state;
         const clipsLeft = clipsMade - clipsSold;
-        return clipsLeft >= 500n;
+        return clipsLeft >= howMany;
     }
 
-    public sellClips = () => {
-        if (!this.canSellClips()) {
+    public sellClips = (howMany: bigint = 500n) => {
+        if (!this.canSellClips(howMany)) {
             return;
         }
 
         this.setState((oldState): Partial<IState> => {
             return {
-                clipsSold: oldState.clipsSold + 500n,
-                funds: oldState.funds + this.state.costPerClip * 500
+                clipsSold: oldState.clipsSold + howMany,
+                funds: oldState.funds + this.state.costPerClip * Number(howMany)
             };
         });
     }
@@ -172,12 +172,24 @@ export class Game extends Component<IProps, IState>{
                 <hr />
                 <button onClick={this.clip} disabled={!this.canClip()}>Build Clip</button>
                 <h3>Wire: {printNumberWithCommas(this.state.wire)}</h3>
-                <button onClick={this.buyWire} disabled={!this.canBuyWire()}>Buy Wire for ${this.getWireCost()}</button>
+                <div class="buttons">
+                    <button onClick={() => this.buyWire(500)} disabled={!this.canBuyWire(500)}>Buy 500 Wire for ${this.getWireCost(500).toFixed(2)}</button>
+                    <button onClick={() => this.buyWire(1000)} disabled={!this.canBuyWire(1000)}>Buy 1000 Wire for ${this.getWireCost(1000).toFixed(2)}</button>
+                    <button onClick={() => this.buyWire(2000)} disabled={!this.canBuyWire(2000)}>Buy 2000 Wire for ${this.getWireCost(2000).toFixed(2)}</button>
+                </div>
                 <hr />
                 <h3>Funds: ${funds.toFixed(2)}</h3>
-                <button disabled={!this.canSellClips()} onClick={this.sellClips}>
-                    Sell 500 clips for ${(this.state.costPerClip * 500).toFixed(2)}
-                </button>
+                <div class="buttons">
+                    <button disabled={!this.canSellClips(100n)} onClick={() => this.sellClips(100n)}>
+                        Sell 100 clips for ${(this.state.costPerClip * 100).toFixed(2)}
+                    </button>
+                    <button disabled={!this.canSellClips(200n)} onClick={() => this.sellClips(200n)}>
+                        Sell 200 clips for ${(this.state.costPerClip * 200).toFixed(2)}
+                    </button>
+                    <button disabled={!this.canSellClips(500n)} onClick={() => this.sellClips(500n)}>
+                        Sell 500 clips for ${(this.state.costPerClip * 500).toFixed(2)}
+                    </button>
+                </div>
                 <h3>Autoclippers: {printNumberWithCommas(autoClippers)}</h3>
                 <button disabled={!this.canBuyAutoClipper()} onClick={this.buyAutoClipper}>
                     Buy AutoClipper (${newAutoClipperCost.toFixed(2)})
