@@ -1,8 +1,8 @@
 {
   "scripts": {
-    "dev:build": "rm -rf ./output;esbuild src/index.tsx --bundle --outfile=./output/index.js --sourcemap;cp src/index.html ./output/index.html",
-    "dev:watch": "esbuild src/index.tsx --bundle --outfile=./output/index.js --sourcemap --watch",
-    "prod:build": "rm -rf ./output;esbuild src/index.tsx --bundle --outfile=./output/index.js --minify;cp src/index.html ./output/index.html"
+    "dev:build": "rm -rf ./output;node build/dev-build.mjs;cp src/index.html ./output/index.html",
+    "dev:watch": "node build/dev-watch.mjs",
+    "prod:build": "rm -rf ./output;node build/prod-build.mjs;cp src/index.html ./output/index.html"
   },
   "name": "universal-paperclips",
   "version": "1.0.0",
@@ -13,6 +13,7 @@
     "typescript": "^5.3.3"
   },
   "dependencies": {
-    "preact": "^10.19.6"
+    "preact": "^10.19.6",
+    "reactflow": "^11.10.4"
   }
 }
