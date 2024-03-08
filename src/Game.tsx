@@ -1,6 +1,6 @@
 import { Component } from "preact";
 import { printNumberWithCommas } from "./format";
-import ReactFlow from "reactflow";
+import ReactFlow, { Background } from "reactflow";
 import 'reactflow/dist/base.css';
 
 interface IProps {
@@ -164,17 +164,35 @@ export class Game extends Component<IProps, IState>{
             funds,
             clipsPerSecond
         } = this.state;
+        const unsoldClips = clipsMade - clipsSold;
         const newAutoClipperCost = this.nextAutoClipperCost();
-        const initialNodes = [
-            { id: '1', position: { x: 0, y: 0 }, data: { label: '1' } },
-            { id: '2', position: { x: 0, y: 100 }, data: { label: '2' } },
-          ];
-        const initialEdges = [{ id: 'e1-2', source: '1', target: '2' }];
+        const nodes = [
+            { id: "wire", data: { label: `Wire: ${printNumberWithCommas(this.state.wire)}` }, position: { x: 0, y: 200 } },
+            { id: "autoclippers", data: { label: `Autoclippers: ${printNumberWithCommas(autoClippers)}` }, position: { x: 100, y: 100 } },
+            { id: "build-clip", data: { label: "Build Clip" }, position: { x: 100, y: 300 } },
+            { id: "unsold-clips", data: { label: `Unsold Clips: ${printNumberWithCommas(unsoldClips)}` }, position: { x: 200, y: 200 } },
+            { id: "sell-clips", data: { label: "Sell Clips" }, position: { x: 300, y: 200 } },
+            { id: "funds", data: { label: `Funds: $${funds.toFixed(2)}` }, position: { x: 400, y: 200 } },
+            { id: "buy-wire", data: { label: "Buy Wire" }, position: { x: 100, y: 400 } },
+            { id: "buy-autoclippers", data: { label: "Buy Autoclipper" }, position: { x: 200, y: 0 } },
+        ];
+        const edges = [
+            { id: "wire-autoclippers", source: "wire", target: "autoclippers" },
+            { id: "wire-build-clip", source: "wire", target: "build-clip" },
+            { id: "build-clip-unsold-clips", source: "build-clip", target: "unsold-clips" },
+            { id: "autoclippers-unsold-clips", source: "autoclippers", target: "unsold-clips" },
+            { id: "unsold-clips-sell-clips", source: "unsold-clips", target: "sell-clips" },
+            { id: "sell-clips-funds", source: "sell-clips", target: "funds" },
+            { id: "buy-wire-wire", source: "buy-wire", target: "wire" },
+            { id: "buy-autoclippers-autoclippers", source: "buy-autoclippers", target: "autoclippers" },
+            { id: "buy-wire-funds", source: "funds", target: "buy-wire" },
+            { id: "buy-autoclippers-funds", source: "funds", target: "buy-autoclippers" },
+        ];
 
         return (
             <div id="container">
                 <div id="sidebar">
-                    <h1>Clips: {printNumberWithCommas(clipsMade - clipsSold)}</h1>
+                    <h1>Clips: {printNumberWithCommas(unsoldClips)}</h1>
                     <div>Clips made: {clipsMade}<br />Clips sold: {clipsSold}</div>
                     <h2>Clips per second: {printNumberWithCommas(clipsPerSecond)}</h2>
                     <hr />
@@ -199,7 +217,9 @@ export class Game extends Component<IProps, IState>{
                         Buy AutoClipper (${newAutoClipperCost.toFixed(2)})
                     </button>
                 </div>
-                <ReactFlow nodes={initialNodes} edges={initialEdges} />
+                <ReactFlow nodes={nodes} edges={edges}>
+                    <Background color="#aaa" gap={16} />
+                </ReactFlow>
             </div>
         )
     }
