@@ -172,21 +172,19 @@ export class Game extends Component<IProps, IState>{
         const initialEdges = [{ id: 'e1-2', source: '1', target: '2' }];
 
         return (
-            <div>
-                <h1>Clips: {printNumberWithCommas(clipsMade - clipsSold)}</h1>
-                <div>Clips made: {clipsMade} | Clips sold: {clipsSold}</div>
-                <h2>Clips per second: {printNumberWithCommas(clipsPerSecond)}</h2>
-                <hr />
-                <button onClick={this.clip} disabled={!this.canClip()}>Build Clip</button>
-                <h3>Wire: {printNumberWithCommas(this.state.wire)}</h3>
-                <div class="buttons">
+            <div id="container">
+                <div id="sidebar">
+                    <h1>Clips: {printNumberWithCommas(clipsMade - clipsSold)}</h1>
+                    <div>Clips made: {clipsMade}<br />Clips sold: {clipsSold}</div>
+                    <h2>Clips per second: {printNumberWithCommas(clipsPerSecond)}</h2>
+                    <hr />
+                    <button onClick={this.clip} disabled={!this.canClip()}>Build Clip</button>
+                    <h3>Wire: {printNumberWithCommas(this.state.wire)}</h3>
                     <button onClick={() => this.buyWire(500)} disabled={!this.canBuyWire(500)}>Buy 500 Wire for ${this.getWireCost(500).toFixed(2)}</button>
                     <button onClick={() => this.buyWire(1000)} disabled={!this.canBuyWire(1000)}>Buy 1000 Wire for ${this.getWireCost(1000).toFixed(2)}</button>
                     <button onClick={() => this.buyWire(2000)} disabled={!this.canBuyWire(2000)}>Buy 2000 Wire for ${this.getWireCost(2000).toFixed(2)}</button>
-                </div>
-                <hr />
-                <h3>Funds: ${funds.toFixed(2)}</h3>
-                <div class="buttons">
+                    <hr />
+                    <h3>Funds: ${funds.toFixed(2)}</h3>
                     <button disabled={!this.canSellClips(100n)} onClick={() => this.sellClips(100n)}>
                         Sell 100 clips for ${(this.state.costPerClip * 100).toFixed(2)}
                     </button>
@@ -196,14 +194,12 @@ export class Game extends Component<IProps, IState>{
                     <button disabled={!this.canSellClips(500n)} onClick={() => this.sellClips(500n)}>
                         Sell 500 clips for ${(this.state.costPerClip * 500).toFixed(2)}
                     </button>
+                    <h3>Autoclippers: {printNumberWithCommas(autoClippers)}</h3>
+                    <button disabled={!this.canBuyAutoClipper()} onClick={this.buyAutoClipper}>
+                        Buy AutoClipper (${newAutoClipperCost.toFixed(2)})
+                    </button>
                 </div>
-                <h3>Autoclippers: {printNumberWithCommas(autoClippers)}</h3>
-                <button disabled={!this.canBuyAutoClipper()} onClick={this.buyAutoClipper}>
-                    Buy AutoClipper (${newAutoClipperCost.toFixed(2)})
-                </button>
-                <div style={{width: "100%", height: "400px"}}>
-                    <ReactFlow nodes={initialNodes} edges={initialEdges} />
-                </div>
+                <ReactFlow nodes={initialNodes} edges={initialEdges} />
             </div>
         )
     }

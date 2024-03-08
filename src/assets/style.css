@@ -11,10 +11,6 @@ html, body {
   font-style: normal;
 }
 
-body {
-  padding: 1rem;
-}
-
 h1, h2, h3 {
   color:rgb(255,0,115)
 }
@@ -63,4 +59,24 @@ button:disabled {
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
   border-right-width: 1px;
+}
+
+#container {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  justify-content: center;
+  height: 100%;
+}
+
+#sidebar {
+  flex: 0 0 200px;
+  background-color: #f0f0f0;
+  padding: 1rem;
+  border-right: 1px solid #e0e0e0;
+}
+
+#main {
+  flex: 1;
+  padding: 1rem;
 }

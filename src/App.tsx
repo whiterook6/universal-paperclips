@@ -1,6 +1,5 @@
 import { Component } from "preact";
 import { Game } from "./Game";
-import { printMillisecondsAsClock } from "./format";
 
 interface IState {
     /** The current time in milliseconds according to the browser */
@@ -79,17 +78,13 @@ export class App extends Component<any, IState> {
         const isRunning = this.state.isRunning;
 
         return (
-            <div>
-                <Game
-                    ageMS={ageMS}
-                    currentFrameTimeMS={currentFrameTimeMS}
-                    isNewSecond={isNewSecond}
-                    deltaTimeMS={deltaTimeMS}
-                    isRunning={isRunning}
-                />
-                {this.state.isRunning ? <button onClick={this.pause}>Pause</button> : <button onClick={this.unPause}>Unpause</button>}
-                <div>{printMillisecondsAsClock(ageMS)} of play time</div>
-            </div>
+            <Game
+                ageMS={ageMS}
+                currentFrameTimeMS={currentFrameTimeMS}
+                isNewSecond={isNewSecond}
+                deltaTimeMS={deltaTimeMS}
+                isRunning={isRunning}
+            />
         )
     }
 
