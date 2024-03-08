@@ -1,8 +1,8 @@
 {
   "scripts": {
-    "dev:build": "rm -rf ./output;node build/dev-build.mjs;cp src/index.html ./output/index.html",
+    "dev:build": "node build/dev-build.mjs",
     "dev:watch": "node build/dev-watch.mjs",
-    "prod:build": "rm -rf ./output;node build/prod-build.mjs;cp src/index.html ./output/index.html"
+    "prod:build": "node build/prod-build.mjs"
   },
   "name": "universal-paperclips",
   "version": "1.0.0",
