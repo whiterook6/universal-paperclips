@@ -1,7 +1,8 @@
 import { Component } from "preact";
-import { printNumberWithCommas } from "./format";
+import { printCost, printNumberWithCommas } from "./format";
 import ReactFlow, { Background, MarkerType, Position } from "reactflow";
 import "reactflow/dist/base.css";
+import { Graph } from "./Graph";
 
 interface IProps {
   currentFrameTimeMS: number;
@@ -18,8 +19,8 @@ interface IState {
   clipsMade: bigint;
   clipsSold: bigint;
   autoClippers: number;
-  funds: number;
-  costPerClip: number;
+  pennies: bigint;
+  penniesPerClip: bigint;
   clipsMadeLastSecond: bigint;
   clipsPerSecond: bigint;
 }
@@ -32,14 +33,14 @@ export class Game extends Component<IProps, IState> {
     clipsMade: 0n,
     clipsSold: 0n,
     autoClippers: 5,
-    funds: 0,
-    costPerClip: 0.05,
+    pennies: 0n,
+    penniesPerClip: 5n,
     clipsMadeLastSecond: 0n,
     clipsPerSecond: 0n,
   };
 
   public canBuyAutoClipper = () => {
-    return this.state.funds >= this.nextAutoClipperCost();
+    return this.state.pennies > this.nextAutoClipperCostInPennies();
   };
 
   public buyAutoClipper = () => {
@@ -51,7 +52,7 @@ export class Game extends Component<IProps, IState> {
       return {
         ...oldState,
         autoClippers: oldState.autoClippers + 1,
-        funds: oldState.funds - this.nextAutoClipperCost(),
+        pennies: oldState.pennies - this.nextAutoClipperCostInPennies(),
       };
     });
   };
@@ -72,10 +73,10 @@ export class Game extends Component<IProps, IState> {
     });
   };
 
-  public getWireCost = (wires: number = 1000) => wires * 0.015;
+  public getWireCostInPennies = (wires: number = 1000) => BigInt(wires * 1.5);
 
   public canBuyWire = (wires: number = 1000) => {
-    return this.state.funds >= this.getWireCost(wires);
+    return this.state.pennies > this.getWireCostInPennies(wires);
   };
 
   public buyWire = (wires: number = 1000) => {
@@ -86,7 +87,7 @@ export class Game extends Component<IProps, IState> {
     this.setState((oldState): Partial<IState> => {
       return {
         wire: oldState.wire + wires,
-        funds: oldState.funds - this.getWireCost(wires),
+        pennies: oldState.pennies - this.getWireCostInPennies(wires),
       };
     });
   };
@@ -105,7 +106,7 @@ export class Game extends Component<IProps, IState> {
     this.setState((oldState): Partial<IState> => {
       return {
         clipsSold: oldState.clipsSold + howMany,
-        funds: oldState.funds + this.state.costPerClip * Number(howMany),
+        pennies: oldState.pennies + this.state.penniesPerClip * howMany,
       };
     });
   };
@@ -158,137 +159,9 @@ export class Game extends Component<IProps, IState> {
   };
 
   public render = () => {
-    const { clipsMade, clipsSold, autoClippers, funds, clipsPerSecond } =
+    const { clipsMade, clipsSold, autoClippers, pennies, clipsPerSecond, wire } =
       this.state;
     const unsoldClips = clipsMade - clipsSold;
-    const newAutoClipperCost = this.nextAutoClipperCost();
-    const wireStyle = {
-      markerEnd: {
-        type: MarkerType.ArrowClosed,
-        width: 20,
-        height: 20,
-        color: "#FF0072",
-      },
-      type: "smoothstep",
-      style: {
-        strokeWidth: 2,
-        stroke: "#FF0072",
-      },
-    };
-    const nodes = [
-      {
-        id: "wire",
-        data: { label: `Wire: ${printNumberWithCommas(this.state.wire)}` },
-        position: { x: 0, y: 200 },
-        sourcePosition: Position.Right,
-        targetPosition: Position.Bottom,
-      },
-      {
-        id: "autoclippers",
-        data: { label: `Autoclippers: ${printNumberWithCommas(autoClippers)}` },
-        position: { x: 100, y: 100 },
-        sourcePosition: Position.Right,
-        targetPosition: Position.Left,
-      },
-      {
-        id: "build-clip",
-        data: { label: "Build Clip" },
-        position: { x: 100, y: 300 },
-        sourcePosition: Position.Right,
-        targetPosition: Position.Left,
-      },
-      {
-        id: "unsold-clips",
-        data: { label: `Unsold Clips: ${printNumberWithCommas(unsoldClips)}` },
-        position: { x: 150, y: 200 },
-        sourcePosition: Position.Right,
-        targetPosition: Position.Left,
-      },
-      {
-        id: "sell-clips",
-        data: { label: "Sell Clips" },
-        position: { x: 400, y: 200 },
-        sourcePosition: Position.Right,
-        targetPosition: Position.Left,
-      },
-      {
-        id: "funds",
-        data: { label: `Funds: $${funds.toFixed(2)}` },
-        position: { x: 550, y: 200 },
-        targetPosition: Position.Left,
-      },
-      {
-        id: "buy-wire",
-        data: { label: "Buy Wire" },
-        position: { x: 100, y: 400 },
-        sourcePosition: Position.Left,
-        targetPosition: Position.Right,
-      },
-      {
-        id: "buy-autoclippers",
-        data: { label: "Buy Autoclipper" },
-        position: { x: 200, y: 0 },
-        sourcePosition: Position.Left,
-        targetPosition: Position.Right,
-      },
-    ];
-    const edges = [
-      {
-        id: "wire-autoclippers",
-        source: "wire",
-        target: "autoclippers",
-        ...wireStyle,
-      },
-      {
-        id: "wire-build-clip",
-        source: "wire",
-        target: "build-clip",
-        ...wireStyle,
-      },
-      {
-        id: "build-clip-unsold-clips",
-        source: "build-clip",
-        target: "unsold-clips",
-        ...wireStyle,
-      },
-      {
-        id: "autoclippers-unsold-clips",
-        source: "autoclippers",
-        target: "unsold-clips",
-        ...wireStyle,
-      },
-      {
-        id: "unsold-clips-sell-clips",
-        source: "unsold-clips",
-        target: "sell-clips",
-        ...wireStyle,
-      },
-      {
-        id: "sell-clips-funds",
-        source: "sell-clips",
-        target: "funds",
-        ...wireStyle,
-      },
-      { id: "buy-wire-wire", source: "buy-wire", target: "wire", ...wireStyle },
-      {
-        id: "buy-autoclippers-autoclippers",
-        source: "buy-autoclippers",
-        target: "autoclippers",
-        ...wireStyle,
-      },
-      {
-        id: "buy-wire-funds",
-        source: "funds",
-        target: "buy-wire",
-        ...wireStyle,
-      },
-      {
-        id: "buy-autoclippers-funds",
-        source: "funds",
-        target: "buy-autoclippers",
-        ...wireStyle,
-      },
-    ];
 
     return (
       <div id="container">
@@ -304,61 +177,64 @@ export class Game extends Component<IProps, IState> {
           <button onClick={this.clip} disabled={!this.canClip()}>
             Build Clip
           </button>
-          <h3>Wire: {printNumberWithCommas(this.state.wire)}</h3>
+          <h3>Wire: {printNumberWithCommas(wire)}</h3>
           <button
             onClick={() => this.buyWire(500)}
             disabled={!this.canBuyWire(500)}
           >
-            Buy 500 Wire for ${this.getWireCost(500).toFixed(2)}
+            Buy 500 Wire for {printCost(this.getWireCostInPennies(500))}
           </button>
           <button
             onClick={() => this.buyWire(1000)}
             disabled={!this.canBuyWire(1000)}
           >
-            Buy 1000 Wire for ${this.getWireCost(1000).toFixed(2)}
+            Buy 1000 Wire for {printCost(this.getWireCostInPennies(1000))}
           </button>
           <button
             onClick={() => this.buyWire(2000)}
             disabled={!this.canBuyWire(2000)}
           >
-            Buy 2000 Wire for ${this.getWireCost(2000).toFixed(2)}
+            Buy 2000 Wire for {printCost(this.getWireCostInPennies(2000))}
           </button>
           <hr />
-          <h3>Funds: ${funds.toFixed(2)}</h3>
+          <h3>Funds: {printCost(pennies)}</h3>
           <button
             disabled={!this.canSellClips(100n)}
             onClick={() => this.sellClips(100n)}
           >
-            Sell 100 clips for ${(this.state.costPerClip * 100).toFixed(2)}
+            Sell 100 clips for {printCost(this.state.penniesPerClip * 100n)}
           </button>
           <button
             disabled={!this.canSellClips(200n)}
             onClick={() => this.sellClips(200n)}
           >
-            Sell 200 clips for ${(this.state.costPerClip * 200).toFixed(2)}
+            Sell 200 clips for {printCost(this.state.penniesPerClip * 200n)}
           </button>
           <button
             disabled={!this.canSellClips(500n)}
             onClick={() => this.sellClips(500n)}
           >
-            Sell 500 clips for ${(this.state.costPerClip * 500).toFixed(2)}
+            Sell 500 clips for {printCost(this.state.penniesPerClip * 500n)}
           </button>
           <h3>Autoclippers: {printNumberWithCommas(autoClippers)}</h3>
           <button
             disabled={!this.canBuyAutoClipper()}
             onClick={this.buyAutoClipper}
           >
-            Buy AutoClipper (${newAutoClipperCost.toFixed(2)})
+            Buy AutoClipper ({printCost(this.nextAutoClipperCostInPennies())})
           </button>
         </div>
-        <ReactFlow nodes={nodes} edges={edges}>
-          <Background color="#aaa" gap={16} />
-        </ReactFlow>
+        <Graph
+          autoClippers={autoClippers}
+          pennies={pennies}
+          unsoldClips={unsoldClips}
+          wire={wire}
+        />
       </div>
     );
   };
 
-  private nextAutoClipperCost = () => {
-    return Math.pow(1.05, this.state.autoClippers) * 5;
+  private nextAutoClipperCostInPennies = (): bigint => {
+    return BigInt(Math.round(Math.pow(1.05, this.state.autoClippers) * 500));
   };
 }

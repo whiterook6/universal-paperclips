@@ -4,6 +4,19 @@ export const printNumberWithCommas = (bigInt: bigint | number): string => {
     return commas.format(bigInt);
 };
 
+const dollars = new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    currencyDisplay: "narrowSymbol"
+});
+export const printCost = (pennies: bigint): string => {
+    if (Number.MAX_SAFE_INTEGER > pennies){
+        return dollars.format(Number(pennies) / 100);
+    } else {
+        return "$" + printNumberWithCommas(pennies / 100n);
+    }
+}
+
 const suffixes = [
     "", // 0
     "thousand", // 3
