@@ -1,6 +1,6 @@
 import { Component } from "preact";
 import { printCost, printNumberWithCommas } from "./format";
-import ReactFlow, { Background, MarkerType, Position } from "reactflow";
+import ReactFlow, { Background, Edge, MarkerType, Node, Position } from "reactflow";
 import "reactflow/dist/base.css";
 import { PureComponent } from "preact/compat";
 
@@ -26,10 +26,10 @@ export const Graph = (props: IProps) => {
       stroke: "#FF0072",
     },
   };
-  const nodes = [
+  const nodes: Node[] = [
     {
       id: "wire",
-      data: { label: `Wire: ${printNumberWithCommas(wire)}` },
+      data: { label: `Wire: ${printNumberWithCommas(wire)}`, value: 1 },
       position: { x: 0, y: 200 },
       sourcePosition: Position.Right,
       targetPosition: Position.Bottom,
@@ -51,7 +51,7 @@ export const Graph = (props: IProps) => {
     {
       id: "unsold-clips",
       data: { label: `Unsold Clips: ${printNumberWithCommas(unsoldClips)}` },
-      position: { x: 150, y: 200 },
+      position: { x: 200, y: 200 },
       sourcePosition: Position.Right,
       targetPosition: Position.Left,
     },
@@ -84,7 +84,7 @@ export const Graph = (props: IProps) => {
       targetPosition: Position.Right,
     },
   ];
-  const edges = [
+  const edges: Edge[] = [
     {
       id: "wire-autoclippers",
       source: "wire",
